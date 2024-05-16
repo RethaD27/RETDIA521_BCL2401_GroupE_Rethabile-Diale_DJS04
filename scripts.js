@@ -1,38 +1,38 @@
 // Importing data and constants from external module
 import { books, authors, genres, BOOKS_PER_PAGE } from "./data.js";
+import BookPreview from "./book-preview.js";
 
 // Initializing variables for pagination and filtering
 let page = 1;
-let matches = books;
 
-// Function to get DOM element by selector
-const getElement = (selector) => document.querySelector(selector);
-
-// Function to create and append book previews to the DOM
 const createBookPreviews = (books, container) => {
   const fragment = document.createDocumentFragment();
-  books.forEach(({ author, id, image, title }) => {
-    const element = document.createElement("button");
-    element.classList = "preview";
-    element.setAttribute("data-preview", id);
-    element.innerHTML = `
-            <img class="preview__image" src="${image}" />
-            <div class="preview__info">
-                <h3 class="preview__title">${title}</h3>
-                <div class="preview__author">${authors[author]}</div>
-            </div>
-        `;
-
-    fragment.appendChild(element);
+  books.forEach((book) => {
+    const preview = new BookPreview();
+    preview.book = book;
+    fragment.appendChild(preview);
   });
   container.appendChild(fragment);
 };
 
+const updateShowMoreButton = () => {
+  const remainingBooks = books.length - page * BOOKS_PER_PAGE;
+  const button = document.querySelector("[data-list-button]");
+  button.innerHTML = `
+      <span>Show more</span>
+      <span class="list__remaining">(${
+        remainingBooks > 0 ? remainingBooks : 0
+      })</span>
+    `;
+  button.disabled = remainingBooks <= 0;
+};
+
 // Initial rendering of book previews
 createBookPreviews(
-  matches.slice(0, BOOKS_PER_PAGE),
-  getElement("[data-list-items]")
+  books.slice(0, BOOKS_PER_PAGE),
+  document.querySelector("[data-list-items]")
 );
+updateShowMoreButton();
 
 // Function to create and append options to a select element
 const createOptions = (options, defaultOption, container) => {
