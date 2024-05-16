@@ -27,7 +27,7 @@ const createBookPreviews = (books, container) => {
   });
   container.appendChild(fragment);
 };
-***************
+
 // Initial rendering of book previews
 createBookPreviews(
   matches.slice(0, BOOKS_PER_PAGE),
