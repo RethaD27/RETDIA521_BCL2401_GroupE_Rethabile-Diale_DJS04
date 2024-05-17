@@ -17,9 +17,28 @@ const createBookPreviews = (books, container) => {
   books.forEach((book) => {
     const bookPreview = document.createElement("book-preview");
     bookPreview.setAttribute("book", JSON.stringify(book));
+    bookPreview.addEventListener("click", (event) =>
+      handleBookClick(event, book)
+    );
     container.appendChild(bookPreview);
   });
 };
+
+// Event handler for book clicks
+const handleBookClick = (event) => {
+  const book = event.detail;
+  getElement("[data-list-active]").open = true;
+  getElement("[data-list-blur]").src = book.image;
+  getElement("[data-list-image]").src = book.image;
+  getElement("[data-list-title]").innerText = book.title;
+  getElement("[data-list-subtitle]").innerText = `${
+    authors[book.author]
+  } (${new Date(book.published).getFullYear()})`;
+  getElement("[data-list-description]").innerText = book.description;
+};
+
+// Listen for the custom `book-click` event
+getElement("[data-list-items]").addEventListener("book-click", handleBookClick);
 
 // Initial rendering of book previews
 createBookPreviews(
@@ -90,4 +109,18 @@ getElement("[data-list-button]").addEventListener("click", () => {
 // Click event listener for book reviews
 getElement("[data-list-items]").addEventListener("click", (event) => {
   const pathArray = Array.from(event.composedPath());
+  const active = pathArray.find((node) => node?.dataset?.preview);
+  if (active) {
+    const book = books.find((book) => book.id === active.dataset.preview);
+    if (book) {
+      getElement("[data-list-active]").open = true;
+      getElement("[data-list-blur]").src = book.image;
+      getElement("[data-list-image]").src = book.image;
+      getElement("[data-list-title]").innerText = book.title;
+      getElement("[data-list-subtitle]").innerText = `${
+        authors[book.author]
+      } (${new Date(book.published).getFullYear()})`;
+      getElement("[data-list-description]").innerText = book.description;
+    }
+  }
 });
