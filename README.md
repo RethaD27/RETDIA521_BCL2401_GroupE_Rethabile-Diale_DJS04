@@ -23,3 +23,10 @@ Book Connect is a web application designed to help users discover and explore bo
 * styles.css
 * scripts.js
 * data.js
+* book-preview.js
+
+## Reflections
+* One of the main challenges I faced during development was implementing the book preview 
+  feature. This required managing dynamic content and ensuring smooth interactions between the 
+  user interface.
+  
