@@ -1,4 +1,4 @@
-import { books, authors, genres, BOOKS_PER_PAGE } from "./data.js";
+import { books, authors } from "./data.js";
 class BookPreview extends HTMLElement {
   static get observedAttributes() {
     return ["author", "id", "image", "title"];
