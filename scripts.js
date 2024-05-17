@@ -1,192 +1,93 @@
+// main.js
+
 import { books, authors, genres, BOOKS_PER_PAGE } from "./data.js";
+import "./book-preview.js";
+import "./theme-toggler.js";
+import "./search-filter.js";
 
-class BookStore {
-  constructor(books, authors, genres, booksPerPage) {
-    this.books = books;
-    this.authors = authors;
-    this.genres = genres;
-    this.booksPerPage = booksPerPage;
-    this.page = 1;
-    this.matches = books;
-  }
+// Initializing variables for pagination and filtering
+let page = 1;
+let matches = books;
 
-  init() {
-    this.renderBooks(this.getBooksToRender());
-    this.populateGenres("[data-search-genres]", "All Genres");
-    this.populateAuthors("[data-search-authors]", "All Authors");
-    this.setTheme();
-    this.updateShowMoreButton();
-    this.addEventListeners();
-  }
+// Function to get DOM element by selector
+const getElement = (selector) => document.querySelector(selector);
 
-  getBooksToRender() {
-    return this.matches.slice(0, this.page * this.booksPerPage);
-  }
+// Function to create and append book previews using the new web component
+const createBookPreviews = (books, container) => {
+  books.forEach((book) => {
+    const bookPreview = document.createElement("book-preview");
+    bookPreview.setAttribute("book", JSON.stringify(book));
+    container.appendChild(bookPreview);
+  });
+};
 
-  renderBooks(books) {
-    const fragment = document.createDocumentFragment();
-    books.forEach((book) => {
-      const element = document.createElement("book-preview");
-      element.setAttribute("author", this.authors[book.author]);
-      element.setAttribute("id", book.id);
-      element.setAttribute("image", book.image);
-      element.setAttribute("title", book.title);
-      fragment.appendChild(element);
-    });
+// Initial rendering of book previews
+createBookPreviews(
+  matches.slice(0, BOOKS_PER_PAGE),
+  getElement("[data-list-items]")
+);
 
-    document.querySelector("[data-list-items]").appendChild(fragment);
-    this.updateShowMoreButton();
-  }
+// Function to update "show more" button text & state
+const updateShowMoreButton = () => {
+  const remainingBooks = matches.length - page * BOOKS_PER_PAGE;
+  const button = getElement("[data-list-button]");
+  button.innerHTML = `
+      <span>Show more</span>
+      <span class="list__remaining">(${
+        remainingBooks > 0 ? remainingBooks : 0
+      })</span>
+    `;
+  button.disabled = remainingBooks <= 0;
+};
 
-  populateGenres(selector, defaultOptionText) {
-    const genreHtml = document.createDocumentFragment();
-    const firstGenreElement = this.createOptionElement(
-      defaultOptionText,
-      "any"
-    );
-    genreHtml.appendChild(firstGenreElement);
+// Updating "Show more" button initially
+updateShowMoreButton();
 
-    for (const [id, name] of Object.entries(this.genres)) {
-      const element = this.createOptionElement(name, id);
-      genreHtml.appendChild(element);
-    }
+// Event listener for search form submission
+getElement("search-filter").addEventListener("search", (event) => {
+  const filters = event.detail;
+  matches = applySearchFilters(filters);
+  page = 1;
+  getElement("[data-list-message]").classList.toggle(
+    "list__message_show",
+    matches.length < 1
+  );
+  getElement("[data-list-items]").innerHTML = "";
+  createBookPreviews(
+    matches.slice(0, BOOKS_PER_PAGE),
+    getElement("[data-list-items]")
+  );
+  updateShowMoreButton();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 
-    document.querySelector(selector).appendChild(genreHtml);
-  }
+// Function to apply search filters to book data
+const applySearchFilters = (filters) => {
+  return books.filter((book) => {
+    const titleMatch =
+      filters.title.trim() === "" ||
+      book.title.toLowerCase().includes(filters.title.toLowerCase());
+    const authorMatch =
+      filters.author === "any" || book.author === filters.author;
+    const genreMatch =
+      filters.genre === "any" || book.genres.includes(filters.genre);
+    return titleMatch && authorMatch && genreMatch;
+  });
+};
 
-  populateAuthors(selector, defaultOptionText) {
-    const authorsHtml = document.createDocumentFragment();
-    const firstAuthorElement = this.createOptionElement(
-      defaultOptionText,
-      "any"
-    );
-    authorsHtml.appendChild(firstAuthorElement);
+// Click event listener for "show more" button
+getElement("[data-list-button]").addEventListener("click", () => {
+  page++;
+  const start = (page - 1) * BOOKS_PER_PAGE;
+  const end = start + BOOKS_PER_PAGE;
+  createBookPreviews(
+    matches.slice(start, end),
+    getElement("[data-list-items]")
+  );
+  updateShowMoreButton();
+});
 
-    for (const [id, name] of Object.entries(this.authors)) {
-      const element = this.createOptionElement(name, id);
-      authorsHtml.appendChild(element);
-    }
-
-    document.querySelector(selector).appendChild(authorsHtml);
-  }
-
-  createOptionElement(text, value) {
-    const element = document.createElement("option");
-    element.value = value;
-    element.innerText = text;
-    return element;
-  }
-
-  setTheme() {
-    const theme =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "night"
-        : "day";
-    this.updateTheme(theme);
-    document.querySelector("[data-settings-theme]").value = theme;
-  }
-
-  updateTheme(theme) {
-    const darkMode = theme === "night";
-    document.documentElement.style.setProperty(
-      "--color-dark",
-      darkMode ? "255, 255, 255" : "10, 10, 20"
-    );
-    document.documentElement.style.setProperty(
-      "--color-light",
-      darkMode ? "10, 10, 20" : "255, 255, 255"
-    );
-  }
-
-  updateShowMoreButton() {
-    const showMoreButton = document.querySelector("[data-list-button]");
-    const remainingBooks = this.matches.length - this.page * this.booksPerPage;
-    showMoreButton.innerText = `Show more (${remainingBooks})`;
-    showMoreButton.disabled = remainingBooks < 1;
-
-    showMoreButton.innerHTML = `
-            <span>Show more</span>
-            <span class="list__remaining"> (${
-              remainingBooks > 0 ? remainingBooks : 0
-            })</span>`;
-  }
-
-  addEventListeners() {
-    document
-      .querySelector("[data-search-cancel]")
-      .addEventListener("click", () => {
-        document.querySelector("[data-search-overlay]").open = false;
-      });
-
-    document
-      .querySelector("[data-settings-cancel]")
-      .addEventListener("click", () => {
-        document.querySelector("[data-settings-overlay]").open = false;
-      });
-
-    document
-      .querySelector("[data-header-search]")
-      .addEventListener("click", () => {
-        document.querySelector("[data-search-overlay]").open = true;
-        document.querySelector("[data-search-title]").focus();
-      });
-
-    document
-      .querySelector("[data-header-settings]")
-      .addEventListener("click", () => {
-        document.querySelector("[data-settings-overlay]").open = true;
-      });
-
-    document
-      .querySelector("[data-settings-form]")
-      .addEventListener("submit", (event) => {
-        event.preventDefault();
-        const formData = new FormData(event.target);
-        const { theme } = Object.fromEntries(formData);
-        this.updateTheme(theme);
-        document.querySelector("[data-settings-overlay]").open = false;
-      });
-
-    document
-      .querySelector("[data-search-form]")
-      .addEventListener("submit", (event) => {
-        event.preventDefault();
-        const formData = new FormData(event.target);
-        this.matches = this.applyFilters(formData);
-        this.page = 1;
-        this.renderFilteredBooks();
-      });
-
-    document
-      .querySelector("[data-list-button]")
-      .addEventListener("click", () => {
-        this.page += 1;
-        this.renderBooks(this.getBooksToRender());
-      });
-  }
-
-  applyFilters(formData) {
-    const filters = Object.fromEntries(formData);
-    return this.books.filter((book) => {
-      const matchesTitle = filters.title
-        ? book.title.toLowerCase().includes(filters.title.toLowerCase())
-        : true;
-      const matchesAuthor =
-        filters.author !== "any" ? book.author === filters.author : true;
-      const matchesGenre =
-        filters.genre !== "any" ? book.genres.includes(filters.genre) : true;
-      return matchesTitle && matchesAuthor && matchesGenre;
-    });
-  }
-
-  renderFilteredBooks() {
-    const listItems = document.querySelector("[data-list-items]");
-    listItems.innerHTML = ""; // Clear current books
-    this.renderBooks(this.getBooksToRender());
-  }
-}
-
-// Initialize BookStore
-const bookStore = new BookStore(books, authors, genres, BOOKS_PER_PAGE);
-bookStore.init();
+// Click event listener for book reviews
+getElement("[data-list-items]").addEventListener("click", (event) => {
+  const pathArray = Array.from(event.composedPath());
+});
