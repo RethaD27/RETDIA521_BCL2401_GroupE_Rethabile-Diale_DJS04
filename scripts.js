@@ -1,4 +1,7 @@
+// Importing data and constants from external module
 import { books, authors, genres, BOOKS_PER_PAGE } from "./data.js";
+
+// Importing functions and custom elements from other files
 import {
   getElement,
   createBookPreviews,
@@ -9,21 +12,26 @@ import "./book-preview.js";
 import "./search-filter.js";
 import "./theme-toggler.js";
 
+// Initialize page number and matches array
 let page = 1;
 let matches = books;
 
+// Initial rendering of book previews
 createBookPreviews(
   matches.slice(0, BOOKS_PER_PAGE),
   getElement("[data-list-items]")
 );
 
+// Populate genre and author dropdowns
 createOptions(genres, "All Genres", getElement("[data-search-genres]"));
 createOptions(authors, "All Authors", getElement("[data-search-authors]"));
 
+// Apply theme based on user's preferred color scheme
 applyTheme(
   window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "day"
 );
 
+// Function to update "show more" button text & state
 const updateShowMoreButton = () => {
   const remainingBooks = matches.length - page * BOOKS_PER_PAGE;
   const button = getElement("[data-list-button]");
@@ -36,17 +44,21 @@ const updateShowMoreButton = () => {
   button.disabled = remainingBooks <= 0;
 };
 
+// Update "Show more" button initially
 updateShowMoreButton();
 
+// Function to close overlay
 const closeOverlay = (selector) => {
   getElement(selector).open = false;
 };
 
+// Function to open overlay
 const openOverlay = (selector, focusSelector = null) => {
   getElement(selector).open = true;
   if (focusSelector) getElement(focusSelector).focus();
 };
 
+// Function to apply search filters to book data
 const applySearchFilters = (filters) => {
   return books.filter((book) => {
     const titleMatch =
@@ -60,26 +72,34 @@ const applySearchFilters = (filters) => {
   });
 };
 
+// Event listeners
+
+// Close search overlay
 getElement("[data-search-cancel]").addEventListener("click", () =>
   closeOverlay("[data-search-overlay]")
 );
 
+// Close settings overlay
 getElement("[data-settings-cancel]").addEventListener("click", () =>
   closeOverlay("[data-settings-overlay]")
 );
 
+// Open search overlay
 getElement("[data-header-search]").addEventListener("click", () =>
   openOverlay("[data-search-overlay]", "[data-search-title]")
 );
 
+// Open settings overlay
 getElement("[data-header-settings]").addEventListener("click", () =>
   openOverlay("[data-settings-overlay]")
 );
 
+// Close active book overlay
 getElement("[data-list-close]").addEventListener("click", () =>
   closeOverlay("[data-list-active]")
 );
 
+// Submit event listener for settings form
 getElement("[data-settings-form]").addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
@@ -88,6 +108,7 @@ getElement("[data-settings-form]").addEventListener("submit", (event) => {
   closeOverlay("[data-settings-overlay]");
 });
 
+// Submit event listener for search form
 getElement("[data-search-form]").addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
@@ -108,6 +129,7 @@ getElement("[data-search-form]").addEventListener("submit", (event) => {
   closeOverlay("[data-search-overlay]");
 });
 
+// Click event listener for "show more" button
 getElement("[data-list-button]").addEventListener("click", () => {
   page++;
   const start = (page - 1) * BOOKS_PER_PAGE;
@@ -119,6 +141,7 @@ getElement("[data-list-button]").addEventListener("click", () => {
   updateShowMoreButton();
 });
 
+// Click event listener for book previews
 getElement("[data-list-items]").addEventListener("click", (event) => {
   const pathArray = Array.from(event.composedPath());
   const active = pathArray.find((node) => node?.dataset?.preview);
