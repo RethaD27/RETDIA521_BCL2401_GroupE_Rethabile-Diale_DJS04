@@ -1,9 +1,12 @@
-// theme-toggler.js
-
 class ThemeToggler extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
+    this.applyTheme(
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "night"
+        : "day"
+    );
   }
 
   connectedCallback() {
@@ -11,11 +14,6 @@ class ThemeToggler extends HTMLElement {
     this.shadowRoot
       .querySelector("form")
       .addEventListener("submit", this.handleSubmit.bind(this));
-    this.applyTheme(
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "night"
-        : "day"
-    );
   }
 
   applyTheme(theme) {
@@ -28,7 +26,7 @@ class ThemeToggler extends HTMLElement {
       "--color-light",
       isNight ? "10, 10, 20" : "255, 255, 255"
     );
-    this.shadowRoot.querySelector("select").value = isNight ? "night" : "day";
+    this.shadowRoot.querySelector("select").value = theme;
   }
 
   handleSubmit(event) {
@@ -40,32 +38,32 @@ class ThemeToggler extends HTMLElement {
 
   render() {
     this.shadowRoot.innerHTML = `
-        <style>
-          form {
-            display: flex;
-            align-items: center;
-            gap: 0.5em;
-          }
-          label {
-            font-size: 1em;
-          }
-          select {
-            font-size: 1em;
-          }
-          button {
-            font-size: 1em;
-            padding: 0.2em 0.5em;
-          }
-        </style>
-        <form>
-          <label for="theme">Theme:</label>
-          <select name="theme" id="theme">
-            <option value="day">Day</option>
-            <option value="night">Night</option>
-          </select>
-          <button type="submit">Apply</button>
-        </form>
-      `;
+      <style>
+        form {
+          display: flex;
+          align-items: center;
+          gap: 0.5em;
+        }
+        label {
+          font-size: 1em;
+        }
+        select {
+          font-size: 1em;
+        }
+        button {
+          font-size: 1em;
+          padding: 0.2em 0.5em;
+        }
+      </style>
+      <form>
+        <label for="theme">Theme:</label>
+        <select name="theme" id="theme">
+          <option value="day">Day</option>
+          <option value="night">Night</option>
+        </select>
+        <button type="submit">Apply</button>
+      </form>
+    `;
   }
 }
 

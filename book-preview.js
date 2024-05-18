@@ -1,5 +1,3 @@
-// book-preview.js
-
 import { authors } from "./data.js";
 
 class BookPreview extends HTMLElement {
@@ -14,18 +12,15 @@ class BookPreview extends HTMLElement {
 
   connectedCallback() {
     this.render();
-    this.shadowRoot
-      .querySelector(".preview")
-      .addEventListener("click", (event) => {
-        event.preventDefault();
-        this.dispatchEvent(
-          new CustomEvent("book-click", {
-            detail: JSON.parse(this.getAttribute("book")),
-            bubbles: true,
-            composed: true,
-          })
-        );
-      });
+    this.shadowRoot.querySelector(".preview").addEventListener("click", () => {
+      this.dispatchEvent(
+        new CustomEvent("book-click", {
+          detail: JSON.parse(this.getAttribute("book")),
+          bubbles: true,
+          composed: true,
+        })
+      );
+    });
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
