@@ -1,71 +1,42 @@
 import { authors } from "./data.js";
 
 class BookPreview extends HTMLElement {
-  static get observedAttributes() {
-    return ["book"];
-  }
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
   connectedCallback() {
     this.render();
-    this.shadowRoot.querySelector(".preview").addEventListener("click", () => {
-      this.dispatchEvent(
-        new CustomEvent("book-click", {
-          detail: JSON.parse(this.getAttribute("book")),
-          bubbles: true,
-          composed: true,
-        })
-      );
-    });
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (name === "book" && oldValue !== newValue) {
-      this.render();
-    }
   }
 
   render() {
-    const book = JSON.parse(this.getAttribute("book"));
-    if (!book) return;
+    const { author, id, image, title } = this.dataset;
+    const authorName = authors[author]; // Fetch the author's name using the ID
 
-    this.shadowRoot.innerHTML = `
+    this.innerHTML = `
       <style>
         .preview {
           display: flex;
           align-items: center;
-          margin-bottom: 1em;
-          border: 1px solid #ccc;
-          padding: 1em;
-          cursor: pointer;
         }
         .preview__image {
-          max-width: 100px;
-          margin-right: 1em;
+          width: 50px;
+          height: 75px;
+          margin-right: 10px;
         }
         .preview__info {
-          flex: 1;
+          display: flex;
+          flex-direction: column;
         }
         .preview__title {
           font-size: 1.2em;
-          margin: 0;
         }
         .preview__author {
-          font-size: 0.9em;
-          color: #666;
+          font-size: 1em;
+          color: gray;
         }
       </style>
-      <button class="preview" data-preview="${book.id}">
-        <img class="preview__image" src="${book.image}" alt="${
-      book.title
-    } cover">
+      <button class="preview" data-preview="${id}">
+        <img class="preview__image" src="${image}" />
         <div class="preview__info">
-          <h3 class="preview__title">${book.title}</h3>
-          <div class="preview__author">${authors[book.author]}</div>
+          <h3 class="preview__title">${title}</h3>
+          <div class="preview__author">${authorName}</div> <!-- Use the author's name here -->
         </div>
       </button>
     `;

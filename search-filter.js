@@ -1,69 +1,24 @@
-import { genres, authors } from "./data.js";
-
 class SearchFilter extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-    this.render();
-    this.populateOptions();
-  }
-
   connectedCallback() {
-    this.shadowRoot
-      .querySelector("form")
-      .addEventListener("submit", this.handleSubmit.bind(this));
-  }
-
-  handleSubmit(event) {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const filters = Object.fromEntries(formData);
-    this.dispatchEvent(new CustomEvent("search", { detail: filters }));
-  }
-
-  populateOptions() {
-    const genreSelect = this.shadowRoot.querySelector('select[name="genre"]');
-    const authorSelect = this.shadowRoot.querySelector('select[name="author"]');
-
-    genreSelect.innerHTML = `<option value="any">All Genres</option>`;
-    Object.entries(genres).forEach(([id, name]) => {
-      genreSelect.innerHTML += `<option value="${id}">${name}</option>`;
-    });
-
-    authorSelect.innerHTML = `<option value="any">All Authors</option>`;
-    Object.entries(authors).forEach(([id, name]) => {
-      authorSelect.innerHTML += `<option value="${id}">${name}</option>`;
-    });
+    this.render();
   }
 
   render() {
-    this.shadowRoot.innerHTML = `
+    const { options, defaultOption } = this.dataset;
+    const optionsObject = JSON.parse(options);
+    this.innerHTML = `
       <style>
-        form {
-          display: flex;
-          flex-direction: column;
-          gap: 1em;
-        }
-        label {
-          font-size: 1em;
-        }
-        input, select, button {
-          font-size: 1em;
-          padding: 0.5em;
-        }
-        button {
-          align-self: flex-start;
+        select {
+          padding: 5px;
+          margin: 5px;
         }
       </style>
-      <form>
-        <label for="title">Title:</label>
-        <input type="text" name="title" id="title">
-        <label for="genre">Genre:</label>
-        <select name="genre" id="genre"></select>
-        <label for="author">Author:</label>
-        <select name="author" id="author"></select>
-        <button type="submit">Search</button>
-      </form>
+      <select>
+        <option value="any">${defaultOption}</option>
+        ${Object.entries(optionsObject)
+          .map(([id, name]) => `<option value="${id}">${name}</option>`)
+          .join("")}
+      </select>
     `;
   }
 }
